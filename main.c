@@ -11,7 +11,6 @@
 
 #include <ui.h> /* uiProgressBar, uiMain, uiQuit.. */
 
-
 static uiProgressBar *pbar;
 static int progress_value = 0;
 #ifndef _WIN32
@@ -68,23 +67,20 @@ static unsigned long count_numbers(const int num) {
 
 static void get_dir(void) {
 #ifdef _WIN32
-    wchar_t* result = (wchar_t*)malloc(7UL);
-    result = L"config";
+    folder = L"config";
 #else
     const char* env = getenv("HOME");
     const char path[24] = "/.config/chillapp/";
 
     register const unsigned long len = strlen(env) + strlen(path);
     char* result = (char *)malloc(len + 1UL);
-#endif
 
-#ifndef _WIN32
     strncat(result, env, sizeof(env) + 1UL);
     strncat(result, path, 24UL);
     strncat(result, "config", 7UL);
-#endif
 
     folder = result;
+#endif
 }
 
 static int addTime(void* data) {
@@ -109,7 +105,9 @@ static int onShouldQuit(void* data) {
 
     uiControlDestroy(uiControl(mainwin));
 
+#ifndef _WIN32
     free(folder);
+#endif
     return 1;
 }
 
@@ -125,7 +123,7 @@ static void onAdd(uiButton *b, void* data) {
     register int fd = openat(0, folder, O_RDONLY, 0);
 #endif
     if (fd != -1) {
-        char buf[1000];
+        char buf[1000] = { 0 };
 
 #ifdef _WIN32
         OVERLAPPED ol = { 0 };
