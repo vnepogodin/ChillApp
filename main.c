@@ -1,12 +1,10 @@
-﻿#include <stdlib.h> /* malloc, free */
+﻿#include "file_manager.h"
+
+#include <stdlib.h> /* malloc, free */
 #include <string.h> /* strtol */
 #include <math.h> /* logf */
-#ifdef _WIN32
-# include <windows.h> /* CreateFile, ReadFileEx, WriteFileEx, CloseHandle.. */
-#else
+#ifndef _WIN32
 # include <sys/stat.h> /* mkdir */
-# include <fcntl.h> /* openat, O_RDONLY */
-# include <unistd.h> /* pread, close */
 #endif
 
 #include <ui.h> /* uiProgressBar, uiMain, uiQuit.. */
@@ -117,51 +115,33 @@ static void onSkip(uiButton *b, void* data) {
 }
 
 static void onAdd(uiButton *b, void* data) {
-#ifdef _WIN32
-    register void* fd = CreateFile(folder, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED, NULL);
-#else
-    register int fd = openat(0, folder, O_RDONLY, 0);
-#endif
-    if (fd != -1) {
-        char buf[1000] = { 0 };
+    register file_t fd = 0;
 
-#ifdef _WIN32
-        OVERLAPPED ol = { 0 };
-        ReadFileEx(fd, buf, 999, &ol, 3);
-#else
-        pread(fd, buf, 1000UL, 0);
-#endif
-
+    OPEN_READ_D(fd)
         char *ptr = NULL;
         const int value = (int)strtol(buf, &ptr, 10) + 5;
         register const unsigned long len = count_numbers(value);
 
+        CLOSE_ND(fd)
 
+        register file_t buf_file = 0;
 #ifdef _WIN32
-        CloseHandle(fd);
-        register void* buf_file = CreateFile(folder, GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+        OPEN_WRITE_D(buf_file, OPEN_EXISTING)
 #else
-        close(fd);
-        register int buf_file = openat(0, folder, O_WRONLY, 0);
+        OPEN_WRITE_D(buf_file, O_WRONLY)
 #endif
 
-        if (buf_file != -1) {
-            char* _num = (char *)malloc(len + 1UL);
-            itoa_d(value, _num);
+        char* _num = (char *)malloc(len + 1UL);
+        itoa_d(value, _num);
 
 #ifdef _WIN32
-            WriteFileEx(buf_file, _num, len, &ol, 3);
-
-            /* Frees memory */
-            CloseHandle(buf_file);
+        WriteFileEx(buf_file, _num, len, &w_ol, 3);
 #else
-            pwrite(buf_file, _num, len, 0);
-
-            /* Frees memory */
-            close(buf_file);
+        pwrite(buf_file, _num, len, 0);
 #endif
-            free(_num);
-        }
+        /* Frees memory */
+        free(_num);
+        CLOSE_D(buf_file)
     }
 
     uiQuit();
@@ -178,7 +158,7 @@ int main(void) {
     register const unsigned char isMenuBar = 0U;
 #endif
 
-    uiWindow *win = uiNewWindow("Timer", 550, 80, isMenuBar);
+    register uiWindow *win = uiNewWindow("Timer", 550, 80, isMenuBar);
     uiWindowOnClosing(win, onClosing, NULL);
     uiOnShouldQuit(onShouldQuit, win);
 

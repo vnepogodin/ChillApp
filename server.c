@@ -7,7 +7,6 @@
 # include <time.h> /* sleep */
 # include <sys/wait.h> /* waitpid */
 # include <sys/stat.h> /* mkdir */
-# include <unistd.h> /* fork, execv */
 #endif
 
 #ifndef _WIN32
@@ -37,12 +36,16 @@ static void get_dir(void) {
 }
 
 static void handler(const int sig) {
-    register void* fd = NULL;
+    register file_t fd = 0;
 
 #ifdef _WIN32
     OPEN_WRITE_D(fd, OPEN_EXISTING)
+
+    WriteFileEx(fd, "10", 2UL, &w_ol, 3);
 #else
     OPEN_WRITE_D(fd, O_WRONLY)
+
+    pwrite(fd, "10", 2UL, 0);
 #endif
 
     CLOSE_D(fd)
@@ -56,12 +59,16 @@ static void handler(const int sig) {
 
 static void create_config(void) {
     get_dir();
-    register void* fd = NULL;
+    register file_t fd = 0;
 
 #ifdef _WIN32
     OPEN_WRITE_D(fd, CREATE_ALWAYS)
+
+    WriteFileEx(fd, "10", 2UL, &w_ol, 3);
 #else
     OPEN_WRITE_D(fd, O_WRONLY | O_CREAT)
+
+    pwrite(fd, "10", 2UL, 0);
 #endif
 
     CLOSE_D(fd)
@@ -110,7 +117,7 @@ int main(void) {
         }
 #endif
 
-        register void* fd = NULL;
+        register file_t fd = 0;
         OPEN_READ_D(fd)
             char* ptr = NULL;
             timeActivity = (int)strtol(buf, &ptr, 10);
