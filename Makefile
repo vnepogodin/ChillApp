@@ -6,12 +6,14 @@ all: main server delete
 main: main.o
 	$(CC) $< $(LDFLAGS) -o chill
 server: server.o
-	$(CC) $< -o $@
+	$(CC) $< -o chill_$@
 
 clean:
-	rm chill server
+	rm chill chill_server
 delete:
 	rm *.o
 install:
 	cp chill /usr/local/bin/chill
+	cp chill_server /usr/local/bin/chill_server
 	chmod 755 /usr/local/bin/chill
+	chmod 755 /usr/local/bin/chill_server
