@@ -3,15 +3,15 @@ CFLAGS := -ffast-math -O2
 LDFLAGS := -lui -lm
 all: main server delete
 
-main: main.o
-	$(CC) src/$< $(LDFLAGS) -o chill
-server: server.o
-	$(CC) src/$< -o chill_$@
+main: src/main.o
+	$(CC) $< $(LDFLAGS) -o chill
+server: src/server.o
+	$(CC) $< -o chill_$@
 
 clean:
 	rm chill chill_server
 delete:
-	rm *.o
+	rm src/*.o
 install:
 	cp chill /usr/local/bin/chill
 	cp chill_server /usr/local/bin/chill_server
