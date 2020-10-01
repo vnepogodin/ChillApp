@@ -1,6 +1,6 @@
 #include "file_manager.h"
 
-#include <stdlib.h> /* malloc, free, exit */
+#include <stdlib.h> /* exit */
 #include <string.h> /* strtol */
 #include <signal.h> /* signal, SIGINT, SIGTERM */
 #ifndef _WIN32
@@ -20,17 +20,13 @@ static void get_dir(void) {
     folder = L"config";
 #else
     const char* env = getenv("HOME");
-    const char path[24] = "/.config/chillapp/";
+    const char path[25] = "/.config/chillapp/config";
 
-    register const unsigned long len = strlen(env) + strlen(path);
-    char* result = (char*)malloc(len + 1UL);
+    char* result = (char *)env;
 
-    strncat(result, env, sizeof(env) + 1UL);
     strncat(result, path, 24UL);
 
     mkdir(result, 6610);
-    strncat(result, "config", 7UL);
-
     folder = result;
 #endif
 }
@@ -50,10 +46,6 @@ static void handler(const int sig) {
 
     CLOSE_D(fd)
 
-    /* Frees memory */
-#ifndef _WIN32
-    free(folder);
-#endif
     exit(0);
 }
 

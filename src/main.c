@@ -1,11 +1,8 @@
 ﻿#include "file_manager.h"
 
-#include <stdlib.h> /* malloc, free */
-#include <string.h> /* strtol */
+#include <stdlib.h> /* getenv, abort */
+#include <string.h> /* strncat */
 #include <math.h> /* logf */
-#ifndef _WIN32
-# include <sys/stat.h> /* mkdir */
-#endif
 
 #include <ui.h> /* uiProgressBar, uiMain, uiQuit.. */
 
@@ -68,14 +65,10 @@ static void get_dir(void) {
     folder = L"config";
 #else
     const char* env = getenv("HOME");
-    const char path[24] = "/.config/chillapp/";
+    const char path[25] = "/.config/chillapp/config";
 
-    register const unsigned long len = strlen(env) + strlen(path);
-    char* result = (char *)malloc(len + 1UL);
-
-    strncat(result, env, sizeof(env) + 1UL);
+    char* result = (char *)env;
     strncat(result, path, 24UL);
-    strncat(result, "config", 7UL);
 
     folder = result;
 #endif
@@ -103,9 +96,6 @@ static int onShouldQuit(void* data) {
 
     uiControlDestroy(uiControl(mainwin));
 
-#ifndef _WIN32
-    free(folder);
-#endif
     return 1;
 }
 
@@ -131,7 +121,7 @@ static void onAdd(uiButton *b, void* data) {
         OPEN_WRITE_D(buf_file, O_WRONLY)
 #endif
 
-        char* _num = (char *)malloc(len + 1UL);
+        char _num[len + 1UL];
         itoa_d(value, _num);
 
 #ifdef _WIN32
@@ -140,7 +130,6 @@ static void onAdd(uiButton *b, void* data) {
         pwrite(buf_file, _num, len, 0);
 #endif
         /* Frees memory */
-        free(_num);
         CLOSE_D(buf_file)
     }
 
