@@ -4,9 +4,9 @@ LDFLAGS := -lui -lm
 all: main server delete
 
 main: main.o
-	$(CC) $< $(LDFLAGS) -o chill
+	$(CC) src/$< $(LDFLAGS) -o chill
 server: server.o
-	$(CC) $< -o chill_$@
+	$(CC) src/$< -o chill_$@
 
 clean:
 	rm chill chill_server
