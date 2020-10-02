@@ -1,7 +1,7 @@
 # ChillApp
 
-## Dependencies
-    * libui
+### Dependencies
+  * libui
 
 
 ## License

@@ -109,7 +109,7 @@ static void onAdd(uiButton *b, void* data) {
 
     OPEN_READ_D(fd)
         char *ptr = NULL;
-        const int value = (int)strtol(buf, &ptr, 10) + 5;
+        const int value = (int)strtol(buf, &ptr, 10) + (int)data;
         register const unsigned long len = count_numbers(value);
 
         CLOSE_ND(fd)
@@ -158,27 +158,28 @@ int main(void) {
     uiBoxSetPadded(vbox, 1);
     uiWindowSetChild(win, uiControl(vbox));
 
+    pbar = uiNewProgressBar();
+    uiBoxAppend(vbox, uiControl(pbar), 0);
 
     /* TOP */
     uiBox *top_box = uiNewHorizontalBox();
     uiBoxAppend(vbox, uiControl(top_box), 0);
+
+    /* Add buttons */
+    uiButton *first_b = uiNewButton("Add 5 Minutes");
+    uiButtonOnClicked(first_b, onAdd, (void*)5);
+    uiBoxAppend(top_box, uiControl(first_b), 1);
+
+    uiButton *second_b = uiNewButton("Add 10 Minutes");
+    uiButtonOnClicked(second_b, onAdd, (void*)10);
+    uiBoxAppend(top_box, uiControl(second_b), 1);
+
 
     /* Skip button */
     uiButton *skip = uiNewButton("Skip");
     uiButtonOnClicked(skip, onSkip, NULL);
     uiBoxAppend(top_box, uiControl(skip), 1);
 
-    /* Add button */
-    uiButton *add = uiNewButton("Add 5 minutes");
-    uiButtonOnClicked(add, onAdd, NULL);
-    uiBoxAppend(top_box, uiControl(add), 1);
-
-    uiBoxAppend(vbox,
-                uiControl(uiNewHorizontalSeparator()),
-                0);
-
-    pbar = uiNewProgressBar();
-    uiBoxAppend(vbox, uiControl(pbar), 0);
 
     uiTimer(244, addTime, NULL);
 
