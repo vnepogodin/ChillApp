@@ -12,8 +12,12 @@ clean:
 	@rm chill chill_server
 delete:
 	@rm src/*.o
+run:
+	./chill_server
 install:
-	@cp chill /usr/local/bin/chill
-	@cp chill_server /usr/local/bin/chill_server
-	@chmod 755 /usr/local/bin/chill
-	@chmod 755 /usr/local/bin/chill_server
+	@if [ ! -d "/etc/chill_app" ]; then mkdir -Z /etc/chill_app; fi
+	@cp -Z etc/config /etc/chill_app
+	@cp -Z chill /usr/bin
+	@cp -Z chill_server /usr/bin
+	@chmod 755 /usr/bin/chill
+	@chmod 755 /usr/bin/chill_server

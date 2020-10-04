@@ -1,18 +1,13 @@
 ﻿#include "file_manager.h"
 
-#include <stdlib.h> /* getenv, abort */
-#include <string.h> /* strncat */
+#include <stdlib.h> /* strtol */
 #include <math.h> /* logf */
 
 #include <ui.h> /* uiProgressBar, uiMain, uiQuit.. */
 
 static uiProgressBar *pbar;
 static int progress_value = 0;
-#ifndef _WIN32
-static char*    folder = NULL;
-#else
-static wchar_t* folder = NULL;
-#endif
+static const char* filename = 0;
 
 #define SWAP(_first, _second) do{       \
     register char _temp = *(_second);   \
@@ -56,22 +51,8 @@ void itoa_d(const int _num_param, char* _str_param) {
     REVERSE(_str_param, i);
 }
 
-static unsigned long count_numbers(const int num) {
+static inline unsigned long count_numbers(const int num) {
     return (unsigned long)logf((float)num);
-}
-
-static void get_dir(void) {
-#ifdef _WIN32
-    folder = L"config";
-#else
-    const char* env = getenv("HOME");
-    const char path[25] = "/.config/chillapp/config";
-
-    char* result = (char *)env;
-    strncat(result, path, 24UL);
-
-    folder = result;
-#endif
 }
 
 static int addTime(void* data) {
@@ -107,7 +88,7 @@ static void onSkip(uiButton *b, void* data) {
 static void onAdd(uiButton *b, void* data) {
     register file_t fd = 0;
 
-    OPEN_READ_D(fd)
+    OPEN_READ_D(fd, filename)
         char *ptr = NULL;
         const int value = (int)strtol(buf, &ptr, 10) + (int)data;
         register const unsigned long len = count_numbers(value);
@@ -116,9 +97,9 @@ static void onAdd(uiButton *b, void* data) {
 
         register file_t buf_file = 0;
 #ifdef _WIN32
-        OPEN_WRITE_D(buf_file, OPEN_EXISTING)
+        OPEN_WRITE_D(buf_file, filename, OPEN_EXISTING)
 #else
-        OPEN_WRITE_D(buf_file, O_WRONLY)
+        OPEN_WRITE_D(buf_file, filename, O_WRONLY)
 #endif
 
         char _num[len + 1UL];
@@ -136,57 +117,59 @@ static void onAdd(uiButton *b, void* data) {
     uiQuit();
 }
 
-int main(void) {
+int main(const int argc, const char** argv) {
+    if (argc > 1)
+        filename = argv[1];
+
     uiInitOptions o = { 0 };
 
-    if (uiInit(&o) != NULL)
-        abort();
+    if (uiInit(&o) == NULL) {
 #ifdef _WIN32
-    register const unsigned char isMenuBar = 1U;
+        register const unsigned char isMenuBar = 1U;
 #else
-    register const unsigned char isMenuBar = 0U;
+        register const unsigned char isMenuBar = 0U;
 #endif
 
-    register uiWindow *win = uiNewWindow("Timer", 550, 80, isMenuBar);
-    uiWindowOnClosing(win, onClosing, NULL);
-    uiOnShouldQuit(onShouldQuit, win);
+        register uiWindow *win = uiNewWindow("Timer", 550, 80, isMenuBar);
+        uiWindowOnClosing(win, onClosing, NULL);
+        uiOnShouldQuit(onShouldQuit, win);
 
-    uiWindowSetMargined(win, 2);
-    uiWindowSetBorderless(win, 0);
+        uiWindowSetMargined(win, 2);
+        uiWindowSetBorderless(win, 0);
 
-    uiBox *vbox = uiNewVerticalBox();
-    uiBoxSetPadded(vbox, 1);
-    uiWindowSetChild(win, uiControl(vbox));
+        uiBox *vbox = uiNewVerticalBox();
+        uiBoxSetPadded(vbox, 1);
+        uiWindowSetChild(win, uiControl(vbox));
 
-    pbar = uiNewProgressBar();
-    uiBoxAppend(vbox, uiControl(pbar), 0);
+        pbar = uiNewProgressBar();
+        uiBoxAppend(vbox, uiControl(pbar), 0);
 
-    /* TOP */
-    uiBox *top_box = uiNewHorizontalBox();
-    uiBoxAppend(vbox, uiControl(top_box), 0);
+        /* TOP */
+        uiBox *top_box = uiNewHorizontalBox();
+        uiBoxAppend(vbox, uiControl(top_box), 0);
 
-    /* Add buttons */
-    uiButton *first_b = uiNewButton("Add 5 Minutes");
-    uiButtonOnClicked(first_b, onAdd, (void*)5);
-    uiBoxAppend(top_box, uiControl(first_b), 1);
+        /* Add buttons */
+        uiButton *first_b = uiNewButton("Add 5 Minutes");
+        uiButtonOnClicked(first_b, onAdd, (void*)5);
+        uiBoxAppend(top_box, uiControl(first_b), 1);
 
-    uiButton *second_b = uiNewButton("Add 10 Minutes");
-    uiButtonOnClicked(second_b, onAdd, (void*)10);
-    uiBoxAppend(top_box, uiControl(second_b), 1);
-
-
-    /* Skip button */
-    uiButton *skip = uiNewButton("Skip");
-    uiButtonOnClicked(skip, onSkip, NULL);
-    uiBoxAppend(top_box, uiControl(skip), 1);
+        uiButton *second_b = uiNewButton("Add 10 Minutes");
+        uiButtonOnClicked(second_b, onAdd, (void*)10);
+        uiBoxAppend(top_box, uiControl(second_b), 1);
 
 
-    uiTimer(244, addTime, NULL);
+        /* Skip button */
+        uiButton *skip = uiNewButton("Skip");
+        uiButtonOnClicked(skip, onSkip, NULL);
+        uiBoxAppend(top_box, uiControl(skip), 1);
 
-    uiControlShow(uiControl(win));
-    get_dir();
 
-    uiMain();
+        uiTimer(244, addTime, NULL);
+
+        uiControlShow(uiControl(win));
+
+        uiMain();
+    }
 
     return 0;
 }

@@ -6,70 +6,33 @@
 #ifndef _WIN32
 # include <time.h> /* sleep */
 # include <sys/wait.h> /* waitpid */
-# include <sys/stat.h> /* mkdir */
 #endif
 
-#ifndef _WIN32
-static char* folder = NULL;
-#else
-static wchar_t* folder = NULL;
-#endif
+static char buf[21] = "/tmp/.config-XXXXXXX";
 
-static void get_dir(void) {
-#ifdef _WIN32
-    folder = L"config";
-#else
-    const char* env = getenv("HOME");
-    const char path[25] = "/.config/chillapp/config";
+static inline int check_time(const char* filename) {
+    int result = 0;
 
-    char* result = (char *)env;
-
-    strncat(result, path, 24UL);
-
-    mkdir(result, 6610);
-    folder = result;
-#endif
+    register file_t fd = 0;
+    OPEN_READ_D(fd, filename)
+        char* ptr = NULL;
+        result = (int)strtol(buf, &ptr, 10);
+    CLOSE_D(fd)
+    return result;
 }
 
 static void handler(const int sig) {
-    register file_t fd = 0;
-
-#ifdef _WIN32
-    OPEN_WRITE_D(fd, OPEN_EXISTING)
-
-    WriteFileEx(fd, "10", 2UL, &w_ol, 3);
-#else
-    OPEN_WRITE_D(fd, O_WRONLY)
-
-    pwrite(fd, "10", 2UL, 0);
-#endif
-
-    CLOSE_D(fd)
-
+    unlink(buf);
     exit(0);
 }
 
-static void create_config(void) {
-    get_dir();
-    register file_t fd = 0;
-
-#ifdef _WIN32
-    OPEN_WRITE_D(fd, CREATE_ALWAYS)
-
-    WriteFileEx(fd, "10", 2UL, &w_ol, 3);
-#else
-    OPEN_WRITE_D(fd, O_WRONLY | O_CREAT)
-
-    pwrite(fd, "10", 2UL, 0);
-#endif
-
-    CLOSE_D(fd)
-}
-
 int main(void) {
-    create_config();
+    register const int config_time = check_time(CONFIG_PATH);
+    register int sleep_time = config_time;
 
-    register int timeActivity = 10;
+    int fdtmp = mkstemp(buf);
+    if (fdtmp != -1)
+        CLOSE_ND(fdtmp)
 
     signal(SIGINT, handler);
     signal(SIGTERM, handler);
@@ -79,9 +42,9 @@ int main(void) {
 
     while (1) {
 #ifdef _WIN32
-        SleepEx(60000 * timeActivity, 0);
+        SleepEx(60000 * sleep_time, 0);
 #else
-        sleep(60 * timeActivity);
+        sleep(60 * sleep_time);
 #endif
 
 #ifdef _WIN32
@@ -99,9 +62,9 @@ int main(void) {
         register int pid = fork();
         int status = 0;
         if (pid == 0) {
-            char* args[2] = { "chill", NULL };
+            char* const args[3] = { "chill", buf, NULL };
 
-            execv(args[0], args);
+            execvp(args[0], args);
         } else {
             do {
                 waitpid(pid, &status, 0);
@@ -109,11 +72,7 @@ int main(void) {
         }
 #endif
 
-        register file_t fd = 0;
-        OPEN_READ_D(fd)
-            char* ptr = NULL;
-            timeActivity = (int)strtol(buf, &ptr, 10);
-        CLOSE_D(fd)
+        sleep_time = config_time + check_time(buf);
     }
 
     return 0;
