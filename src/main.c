@@ -7,7 +7,7 @@
 
 static uiProgressBar *pbar;
 static int progress_value = 0;
-static const char* filename = 0;
+static file_fmt_t filename = 0;
 
 #define SWAP(_first, _second) do{       \
     register char _temp = *(_second);   \
@@ -98,15 +98,19 @@ static void onAdd(uiButton *b, void* data) {
         register file_t buf_file = 0;
 #ifdef _WIN32
         OPEN_WRITE_D(buf_file, filename, OPEN_EXISTING)
+
+        char* _num = (char *)malloc(len + 1UL);
 #else
         OPEN_WRITE_D(buf_file, filename, O_WRONLY)
-#endif
 
         char _num[len + 1UL];
+#endif
+
         itoa_d(value, _num);
 
 #ifdef _WIN32
         WriteFileEx(buf_file, _num, len, &w_ol, 3);
+        free(_num);
 #else
         pwrite(buf_file, _num, len, 0);
 #endif
@@ -117,12 +121,11 @@ static void onAdd(uiButton *b, void* data) {
     uiQuit();
 }
 
-int main(const int argc, const char** argv) {
+int main(const int argc, const file_fmt_t* argv) {
     if (argc > 1)
         filename = argv[1];
 
     uiInitOptions o = { 0 };
-
     if (uiInit(&o) == NULL) {
 #ifdef _WIN32
         register const unsigned char isMenuBar = 1U;
