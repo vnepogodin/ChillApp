@@ -1,4 +1,4 @@
-﻿#include "file_manager.h"
+﻿#include "../include/file_manager.h"
 
 #include <stdlib.h> /* strtol */
 #include <math.h> /* logf */
@@ -27,7 +27,7 @@ static file_fmt_t filename = 0;
     }                                       \
 }while(0)
 
-void itoa_d(const int _num_param, char* _str_param) {
+static void itoa_d(const int _num_param, char* _str_param) {
     register int num = _num_param;
 
     /* Process individual digits */
@@ -55,7 +55,7 @@ static inline unsigned long count_numbers(const int num) {
     return (unsigned long)logf((float)num);
 }
 
-static int addTime(void* data) {
+static inline int addTime(void* data) {
     if (progress_value != 100) {
         ++progress_value;
 
@@ -67,12 +67,12 @@ static int addTime(void* data) {
     return 1;
 }
 
-static int onClosing(uiWindow *w, void* data) {
+static inline int onClosing(uiWindow *w, void* data) {
     uiQuit();
     return 1;
 }
 
-static int onShouldQuit(void* data) {
+static inline int onShouldQuit(void* data) {
     uiWindow *mainwin = uiWindow(data);
 
     uiControlDestroy(uiControl(mainwin));
@@ -80,7 +80,7 @@ static int onShouldQuit(void* data) {
     return 1;
 }
 
-static void onSkip(uiButton *b, void* data) {
+static inline void onSkip(uiButton *b, void* data) {
     uiProgressBarSetValue(pbar, 100);
     uiQuit();
 }
@@ -121,7 +121,7 @@ static void onAdd(uiButton *b, void* data) {
     uiQuit();
 }
 
-int main(const int argc, const file_fmt_t* argv) {
+int main(const int argc, file_fmt_t* argv) {
     if (argc > 1)
         filename = argv[1];
 

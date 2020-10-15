@@ -1,1 +1,6 @@
-15
+title = "GUI"
+
+time = (
+    { sleep = 15 },
+    { out = 100 },
+)

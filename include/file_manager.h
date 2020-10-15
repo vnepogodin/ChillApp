@@ -8,16 +8,6 @@
 # include <unistd.h> /* pread, close */
 #endif
 
-#ifndef _WIN32
-#ifndef DEBUG
-#define CONFIG_PATH "/etc/chill_app/config"
-#else
-#define CONFIG_PATH "etc/config"
-#endif
-#else
-#define CONFIG_PATH L".\\etc\\config"
-#endif
-
 #ifdef _WIN32
 typedef void* file_t;
 typedef wchar_t* file_fmt_t;
