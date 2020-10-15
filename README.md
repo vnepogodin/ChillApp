@@ -2,7 +2,7 @@
 
 ### Dependencies
   * libui
-
+  * libconfig
 
 ## License
 
