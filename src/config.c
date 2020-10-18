@@ -11,6 +11,8 @@
 #include <libconfig.h> /* config_t, config_setting_t */
 
 struct _Time_manager {
+    char* title;
+
     int sleep;
     int out;
 };
@@ -26,6 +28,12 @@ inline void time_manager_free(time_manager *t_conf) {
 inline int get_sleep_time(time_manager *t_conf) {
     return t_conf->sleep;
 }
+inline int get_timeout(time_manager *t_conf) {
+    return t_conf->out;
+}
+inline char* get_title(time_manager *t_conf) {
+    return t_conf->title;
+}
 
 static inline void get_envs(config_setting_t *setting, const char** args, time_manager *t_conf) {
     if (setting != NULL) {
@@ -39,6 +47,11 @@ static inline void get_envs(config_setting_t *setting, const char** args, time_m
 
             ++i;
         }
+
+        if (t_conf->sleep == 0)
+            t_conf->sleep = 10;
+        if (t_conf->out == 0)
+            t_conf->out = 15;
     }
 }
 
@@ -88,11 +101,21 @@ static int conf_read(time_manager *t_conf) {
     register file_fmt_t path = config_get_dir();
 
     if(!config_read_file(&cfg, path)) {
-        fprintf(stderr, "ERROR %d: %s\n", config_error_line(&cfg),
-                                          config_error_text(&cfg));
+        printf("\033[31merror:%d\033[0m: %s\n", config_error_line(&cfg),
+                                                config_error_text(&cfg));
         config_destroy(&cfg);
         return -1;
     }
+
+    const char* buf = NULL;
+    config_lookup_string(&cfg, "title", &buf);
+    if (buf == NULL)
+        buf = "Timer";
+
+    register const unsigned long title_len = strlen(buf) + 1UL;
+
+    t_conf->title = (char *)malloc(title_len);
+    strncpy(t_conf->title, buf, title_len);
 
     config_setting_t *setting = config_lookup(&cfg, "time");
     const char* vars[2] = { "sleep", "out" };

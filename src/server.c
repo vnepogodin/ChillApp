@@ -1,5 +1,6 @@
 #include "../include/file_manager.h"
 #include "../include/config.h"
+#include "../include/helpers.h"
 
 #include <stdlib.h> /* exit, strtol */
 #include <signal.h> /* signal, SIGINT, SIGTERM */
@@ -10,6 +11,7 @@
 #endif
 
 static file_fmt_t buf = NULL;
+static char* title = NULL;
 
 static inline int check_time(file_fmt_t filename) {
     int result = 0;
@@ -23,6 +25,8 @@ static inline int check_time(file_fmt_t filename) {
 }
 
 static void handler(const int sig) {
+    free(title);
+
 #ifndef _WIN32
     unlink(buf);
 #else
@@ -41,6 +45,13 @@ int main(void) {
     register time_manager *t_conf = time_manager_new();
     if (init_conf(t_conf, &buf) != -1) {
         register const int conf_time = get_sleep_time(t_conf);
+        register const int conf_timeout = get_timeout(t_conf);
+        title = get_title(t_conf);
+
+        register const unsigned long len = count_numbers(conf_timeout);
+        char _num[len + 1UL];
+        itoa_d(conf_timeout, _num);
+
         register int sleep_time = conf_time;
 
         time_manager_free(t_conf);
@@ -57,8 +68,8 @@ int main(void) {
             si.cb = sizeof(si);
 
             PROCESS_INFORMATION pi = { 0 };
-            wchar_t args[161] = L"chill.exe ";
-            wcsncat_s(args, 161UL, buf, wcsnlen_s(buf, 161UL));
+            wchar_t args[164] = L"chill.exe -f ";
+            wcsncat_s(args, 164UL, buf, wcsnlen_s(buf, 164UL));
 
             if (CreateProcess(NULL, args, NULL, NULL, 0, 0, NULL, NULL, &si, &pi)) {
                 WaitForSingleObject(pi.hProcess, INFINITE);
@@ -71,7 +82,7 @@ int main(void) {
             register int pid = fork();
             int status = 0;
             if (pid == 0) {
-                char* const args[3] = { "chill", (char *)buf, NULL };
+                char* const args[8] = { "chill", "-f", (char *)buf, "-n", (char *)title, "-t", _num, NULL };
                 execvp(args[0], args);
             } else {
                 do {

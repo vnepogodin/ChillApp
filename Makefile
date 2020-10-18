@@ -1,14 +1,12 @@
 CC := gcc
 CFLAGS := -ffast-math -O2
 LDFLAGS := -lui -lm
-all: config main server delete
-
-config: src/config.o
+all: src/helpers.o src/config.o main server delete
 
 main: src/main.o
-	$(CC) $< $(LDFLAGS) -o chill
+	$(CC) $< src/helpers.o $(LDFLAGS) -o chill
 server: src/server.o
-	$(CC) $< src/config.o -lconfig -o chill_$@
+	$(CC) $< src/helpers.o src/config.o -lconfig -lm -o chill_$@
 
 clean:
 	@rm chill chill_server

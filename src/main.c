@@ -1,59 +1,17 @@
 ﻿#include "../include/file_manager.h"
+#include "../include/helpers.h"
 
 #include <stdlib.h> /* strtol */
-#include <math.h> /* logf */
+#include <string.h> /* strlen */
 
 #include <ui.h> /* uiProgressBar, uiMain, uiQuit.. */
 
+static file_fmt_t title = NULL;
+static file_fmt_t filename = 0;
+static int timeout = 0;
+
 static uiProgressBar *pbar;
 static int progress_value = 0;
-static file_fmt_t filename = 0;
-
-#define SWAP(_first, _second) do{       \
-    register char _temp = *(_second);   \
-    *(_second) = *(_first);             \
-    *(_first) = _temp;                  \
-}while(0)
-
-/* Transform functions */
-#define REVERSE(_str, _length) do{          \
-    register int start = 0;                 \
-    register int end = (_length) - 1;       \
-                                            \
-    while (start < end) {                   \
-        SWAP(&(_str[start]), &(_str[end])); \
-        ++start;                            \
-        --end;                              \
-    }                                       \
-}while(0)
-
-static void itoa_d(const int _num_param, char* _str_param) {
-    register int num = _num_param;
-
-    /* Process individual digits */
-    register int i = 0;
-    while (num != 0) {
-        register int rem = num % 10;
-
-        if (rem > 9)
-            _str_param[i] = (char)((rem - 10) + 'a');
-        else
-            _str_param[i] = (char)(rem + '0');
-
-        num /= 10;
-
-        ++i;
-    }
-
-    _str_param[i] = '\0'; /* Append string terminator */
-
-    /* Reverse the string */
-    REVERSE(_str_param, i);
-}
-
-static inline unsigned long count_numbers(const int num) {
-    return (unsigned long)logf((float)num);
-}
 
 static inline int addTime(void* data) {
     if (progress_value != 100) {
@@ -121,19 +79,65 @@ static void onAdd(uiButton *b, void* data) {
     uiQuit();
 }
 
+static unsigned char initArgs(const int __argc_param, file_fmt_t* __argv_param) {
+    register unsigned char result = 1U;
+
+    register unsigned i = 1U;
+    while (i < __argc_param) {
+        if (__argv_param[i + 1U] == NULL) {
+            result = 1U;
+            break;
+        } else if (__argv_param[i + 1U][0] == '-') {
+            result = 1U;
+            break;
+        }
+
+        if (strlen(__argv_param[i]) == 2UL) {
+        switch (__argv_param[i][1]) {
+        case 'n':
+            title = __argv_param[i + 1U];
+
+            result = 0U;
+            ++i;
+            break;
+        case 't': {
+                char *ptr = NULL;
+                const int value = (int)strtol(__argv_param[i + 1U], &ptr, 10UL);
+                timeout = value;
+
+                result = 0U;
+                ++i;
+            }
+            break;
+        case 'f':
+            filename = __argv_param[i + 1U];
+
+            result = 0U;
+            ++i;
+            break;
+        default: break;
+        }
+        }
+        ++i;
+    }
+
+    return result;
+}
+
 int main(const int argc, file_fmt_t* argv) {
+    register unsigned char res_init = 0U;
     if (argc > 1)
-        filename = argv[1];
+        res_init = initArgs(argc, argv);
 
     uiInitOptions o = { 0 };
-    if (uiInit(&o) == NULL) {
+    if ((!res_init) && (uiInit(&o) == NULL)) {
 #ifdef _WIN32
         register const unsigned char isMenuBar = 1U;
 #else
         register const unsigned char isMenuBar = 0U;
 #endif
 
-        register uiWindow *win = uiNewWindow("Timer", 550, 80, isMenuBar);
+        register uiWindow *win = uiNewWindow((title == NULL) ? "Timer" : title, 550, 80, isMenuBar);
         uiWindowOnClosing(win, onClosing, NULL);
         uiOnShouldQuit(onShouldQuit, win);
 
@@ -166,11 +170,9 @@ int main(const int argc, file_fmt_t* argv) {
         uiButtonOnClicked(skip, onSkip, NULL);
         uiBoxAppend(top_box, uiControl(skip), 1);
 
-
-        uiTimer(244, addTime, NULL);
+        uiTimer((timeout == 0) ? 243 : (16.3 * timeout), addTime, NULL);
 
         uiControlShow(uiControl(win));
-
         uiMain();
     }
 
