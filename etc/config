@@ -1,6 +1,6 @@
-title = "GUI"
+title = "Timer"
 
 time = (
     { sleep = 15 },
-    { out = 100 },
+    { out = 15 },
 )
