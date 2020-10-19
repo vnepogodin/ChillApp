@@ -79,7 +79,7 @@ static void onAdd(uiButton *b, void* data) {
     uiQuit();
 }
 
-static unsigned char initArgs(const int __argc_param, file_fmt_t* __argv_param) {
+static unsigned char initArgs(const int __argc_param, const char** __argv_param) {
     register unsigned char result = 1U;
 
     register unsigned i = 1U;
@@ -124,7 +124,7 @@ static unsigned char initArgs(const int __argc_param, file_fmt_t* __argv_param) 
     return result;
 }
 
-int main(const int argc, file_fmt_t* argv) {
+int main(const int argc, const char** argv) {
     register unsigned char res_init = 0U;
     if (argc > 1)
         res_init = initArgs(argc, argv);

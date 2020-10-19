@@ -10,7 +10,7 @@
 
 #ifdef _WIN32
 typedef void* file_t;
-typedef wchar_t* file_fmt_t;
+typedef const wchar_t* file_fmt_t;
 # define OPEN_READ_D(file_d, path)                                                                                                         \
     (file_d) = CreateFile((path), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED, NULL); \
     if ((file_d) != -1) {                                                                                                                  \

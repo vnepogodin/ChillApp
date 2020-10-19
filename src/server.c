@@ -11,7 +11,8 @@
 #endif
 
 static file_fmt_t buf = NULL;
-static char* title = NULL;
+static title_t title = NULL;
+static title_t _num = NULL;
 
 static inline int check_time(file_fmt_t filename) {
     int result = 0;
@@ -26,6 +27,7 @@ static inline int check_time(file_fmt_t filename) {
 
 static void handler(const int sig) {
     free(title);
+    free(_num);
 
 #ifndef _WIN32
     unlink(buf);
@@ -33,6 +35,22 @@ static void handler(const int sig) {
     _wunlink(buf);
 #endif
     exit(0);
+}
+
+static inline void prepare_timeout(title_t* _str, const int timeout) {
+    register const unsigned long len = count_numbers(timeout) + 1UL;
+
+    char* _num_buf = (char *)malloc(len);
+    itoa_d(timeout, _num_buf);
+
+#ifdef _WIN32
+    *_str = (wchar_t *)malloc(len);
+    mbstowcs_s(NULL, *_str, len, _num_buf, len);
+
+    free(_num_buf);
+#else
+    *_str = _num_buf;
+#endif
 }
 
 int main(void) {
@@ -46,11 +64,9 @@ int main(void) {
     if (init_conf(t_conf, &buf) != -1) {
         register const int conf_time = get_sleep_time(t_conf);
         register const int conf_timeout = get_timeout(t_conf);
-        title = get_title(t_conf);
 
-        register const unsigned long len = count_numbers(conf_timeout);
-        char _num[len + 1UL];
-        itoa_d(conf_timeout, _num);
+        title = get_title(t_conf);
+        prepare_timeout(&_num, conf_timeout);
 
         register int sleep_time = conf_time;
 
@@ -68,8 +84,14 @@ int main(void) {
             si.cb = sizeof(si);
 
             PROCESS_INFORMATION pi = { 0 };
-            wchar_t args[164] = L"chill.exe -f ";
-            wcsncat_s(args, 164UL, buf, wcsnlen_s(buf, 164UL));
+            wchar_t args[200] = L"chill.exe -f ";
+            wcsncat_s(args, 200UL, buf, wcsnlen_s(buf, 200UL));
+
+            wcsncat_s(args, 200UL, L" -n ", 5UL);
+            wcsncat_s(args, 200UL, title, wcsnlen_s(title, 200UL));
+
+            wcsncat_s(args, 200UL, L" -t ", 5UL);
+            wcsncat_s(args, 200UL, _num, wcsnlen_s(_num, 200UL));
 
             if (CreateProcess(NULL, args, NULL, NULL, 0, 0, NULL, NULL, &si, &pi)) {
                 WaitForSingleObject(pi.hProcess, INFINITE);

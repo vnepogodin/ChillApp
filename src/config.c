@@ -11,7 +11,7 @@
 #include <libconfig.h> /* config_t, config_setting_t */
 
 struct _Time_manager {
-    char* title;
+    title_t title;
 
     int sleep;
     int out;
@@ -31,7 +31,7 @@ inline int get_sleep_time(time_manager *t_conf) {
 inline int get_timeout(time_manager *t_conf) {
     return t_conf->out;
 }
-inline char* get_title(time_manager *t_conf) {
+inline title_t get_title(time_manager *t_conf) {
     return t_conf->title;
 }
 
@@ -55,7 +55,7 @@ static inline void get_envs(config_setting_t *setting, const char** args, time_m
     }
 }
 
-static inline file_fmt_t config_get_dir(void) {
+static inline const char* config_get_dir(void) {
 #ifndef _WIN32
 #ifdef DEBUG
     return "etc/config";
@@ -68,7 +68,7 @@ static inline file_fmt_t config_get_dir(void) {
     return env;
 #endif
 #else
-    return L".\\etc\\config";
+    return "etc\\config";
 #endif
 }
 
@@ -79,14 +79,15 @@ static inline void config_get_buf(file_fmt_t* buf) {
     if (fdtmp != -1)
         CLOSE_ND(fdtmp)
 #else
-    static wchar_t res[150] = L".config-XXXXXX";
-    GetTempPath(134, res);
+    static wchar_t res[100] = { 0 };
+    GetTempPath(84, res);
 
-    _wmktemp_s(res, 150UL);
+    wcsncat_s(res, 100UL, L".config-XXXXXX", 16UL);
+    _wmktemp_s(res, 100UL);
 
-    register file_t fd = NULL;
-    OPEN_WRITE_D(fd, res, CREATE_ALWAYS)
-    CLOSE_D(fd)
+    register void* fdtmp = NULL;
+    OPEN_WRITE_D(fdtmp, res, CREATE_ALWAYS)
+    CLOSE_D(fdtmp)
 #endif
 
     *buf = (file_fmt_t)res;
@@ -98,7 +99,7 @@ static int conf_read(time_manager *t_conf) {
     config_init(&cfg);
 
     /* Read the file. If there is an error, report it and exit. */
-    register file_fmt_t path = config_get_dir();
+    register const char* path = config_get_dir();
 
     if(!config_read_file(&cfg, path)) {
         printf("\033[31merror:%d\033[0m: %s\n", config_error_line(&cfg),
@@ -113,9 +114,13 @@ static int conf_read(time_manager *t_conf) {
         buf = "Timer";
 
     register const unsigned long title_len = strlen(buf) + 1UL;
+    t_conf->title = (file_t)malloc(title_len);
 
-    t_conf->title = (char *)malloc(title_len);
+#ifdef _WIN32
+    mbstowcs_s(NULL, t_conf->title, title_len, buf, title_len);
+#else
     strncpy(t_conf->title, buf, title_len);
+#endif
 
     config_setting_t *setting = config_lookup(&cfg, "time");
     const char* vars[2] = { "sleep", "out" };
