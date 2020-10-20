@@ -14,10 +14,10 @@ typedef const wchar_t* file_fmt_t;
 # define OPEN_READ_D(file_d, path)                                                                                                         \
     (file_d) = CreateFile((path), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED, NULL); \
     if ((file_d) != -1) {                                                                                                                  \
-        char buf[1000] = { 0 };                                                                                                            \
+        char buf[25] = { 0 };                                                                                                            \
                                                                                                                                            \
         OVERLAPPED ol = { 0 };                                                                                                             \
-        ReadFileEx((file_d), buf, 1000UL, &ol, 3);
+        ReadFileEx((file_d), buf, 25UL, &ol, 3);
 # define OPEN_WRITE_D(file_d, path, flag)                                                       \
     (file_d) = CreateFile((path), GENERIC_WRITE, 0, NULL, (flag), FILE_ATTRIBUTE_NORMAL, NULL); \
     if ((file_d) != -1) {                                                                       \
@@ -29,9 +29,9 @@ typedef const char* file_fmt_t;
 # define OPEN_READ_D(file_d, path)             \
     (file_d) = openat(0, (path), O_RDONLY, 0); \
     if ((file_d) != -1) {                      \
-        char buf[1000] = { 0 };                \
+        char buf[25] = { 0 };                \
                                                \
-        pread((file_d), buf, 1000UL, 0);
+        pread((file_d), buf, 25UL, 0);
 # define OPEN_WRITE_D(file_d, path, flag)    \
     (file_d) = openat(0, (path), (flag), 0); \
     if ((file_d) != -1) {

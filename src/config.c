@@ -1,4 +1,5 @@
 #include "../include/config.h"
+#include "../include/helpers.h"
 #include "../include/file_manager.h"
 
 #include <stdlib.h> /* getenv, mkstemp, malloc, free */
@@ -12,9 +13,9 @@
 
 struct _Time_manager {
     title_t title;
+    title_t out;
 
     int sleep;
-    int out;
 };
 
 inline time_manager* time_manager_new(void) {
@@ -28,7 +29,7 @@ inline void time_manager_free(time_manager *t_conf) {
 inline int get_sleep_time(time_manager *t_conf) {
     return t_conf->sleep;
 }
-inline int get_timeout(time_manager *t_conf) {
+inline title_t get_timeout(time_manager *t_conf) {
     return t_conf->out;
 }
 inline title_t get_title(time_manager *t_conf) {
@@ -37,21 +38,44 @@ inline title_t get_title(time_manager *t_conf) {
 
 static inline void get_envs(config_setting_t *setting, const char** args, time_manager *t_conf) {
     if (setting != NULL) {
-        register const unsigned len = config_setting_length(setting);
+        register const unsigned сonf_length = (unsigned)config_setting_length(setting);
+        int timeout_buf = 0;
+
         register unsigned i = 0U;
-        while (i < len) {
+        while (i < сonf_length) {
             config_setting_t *pos = config_setting_get_elem(setting, i);
 
             config_setting_lookup_int(pos, args[0], &t_conf->sleep);
-            config_setting_lookup_int(pos, args[1], &t_conf->out);
+            config_setting_lookup_int(pos, args[1], &timeout_buf);
 
             ++i;
         }
 
         if (t_conf->sleep == 0)
             t_conf->sleep = 10;
-        if (t_conf->out == 0)
-            t_conf->out = 15;
+        if (timeout_buf != 0) {
+            register const unsigned long buf_len = count_numbers(timeout_buf) + 1UL;
+            char* _num_buf = (char *)malloc(buf_len);
+            itoa_d(timeout_buf, _num_buf);
+
+#ifdef _WIN32
+            t_conf->out = (wchar_t *)malloc(buf_len);
+            mbstowcs_s(NULL, t_conf->out, buf_len, _num_buf, buf_len);
+
+            /* Frees buffer */
+            free(_num_buf);
+#else
+            t_conf->out = _num_buf;
+#endif
+
+        } else {
+            t_conf->out = (title_t)malloc(3UL * sizeof(title_t));
+#ifdef _WIN32
+            wcscpy_s(t_conf->out, 3UL, L"15");
+#else
+            strncpy(t_conf->out, "15", 3UL);
+#endif
+        }
     }
 }
 
@@ -63,7 +87,7 @@ static inline const char* config_get_dir(void) {
     const char* env = getenv("HOME");
     const char path[26] = "/.config/chill_app/config";
 
-    strncat((char *)env, path, 25UL);
+    strncat((char *)env, path, 26UL);
 
     return env;
 #endif
@@ -75,14 +99,14 @@ static inline const char* config_get_dir(void) {
 static inline void config_get_buf(file_fmt_t* buf) {
 #ifndef _WIN32
     static char res[21] = "/tmp/.config-XXXXXXX";
-    int fdtmp = mkstemp(res);
+    register int fdtmp = mkstemp(res);
     if (fdtmp != -1)
         CLOSE_ND(fdtmp)
 #else
     static wchar_t res[100] = { 0 };
-    GetTempPath(84, res);
+    GetTempPath(85, res);
 
-    wcsncat_s(res, 100UL, L".config-XXXXXX", 16UL);
+    wcsncat_s(res, 100UL, L".config-XXXXXX", 15UL);
     _wmktemp_s(res, 100UL);
 
     register void* fdtmp = NULL;
@@ -114,7 +138,7 @@ static int conf_read(time_manager *t_conf) {
         buf = "Timer";
 
     register const unsigned long title_len = strlen(buf) + 1UL;
-    t_conf->title = (file_t)malloc(title_len);
+    t_conf->title = (title_t)malloc(title_len);
 
 #ifdef _WIN32
     mbstowcs_s(NULL, t_conf->title, title_len, buf, title_len);

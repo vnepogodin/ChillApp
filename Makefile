@@ -1,5 +1,5 @@
 CC := gcc
-CFLAGS := -ffast-math -O2
+CFLAGS := -Wall -Wextra -ffast-math -O2
 LDFLAGS := -lui -lm
 all: src/helpers.o src/config.o main server delete
 

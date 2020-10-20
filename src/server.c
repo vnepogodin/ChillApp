@@ -17,7 +17,7 @@ static title_t _num = NULL;
 static inline int check_time(file_fmt_t filename) {
     int result = 0;
 
-    register file_t fd = 0;
+    register file_t fd = (file_t)0;
     OPEN_READ_D(fd, filename)
         char* ptr = NULL;
         result = (int)strtol(buf, &ptr, 10);
@@ -25,7 +25,8 @@ static inline int check_time(file_fmt_t filename) {
     return result;
 }
 
-static void handler(const int sig) {
+static void handler(UNUSED const int sig) {
+    /* Frees memory */
     free(title);
     free(_num);
 
@@ -35,22 +36,6 @@ static void handler(const int sig) {
     _wunlink(buf);
 #endif
     exit(0);
-}
-
-static inline void prepare_timeout(title_t* _str, const int timeout) {
-    register const unsigned long len = count_numbers(timeout) + 1UL;
-
-    char* _num_buf = (char *)malloc(len);
-    itoa_d(timeout, _num_buf);
-
-#ifdef _WIN32
-    *_str = (wchar_t *)malloc(len);
-    mbstowcs_s(NULL, *_str, len, _num_buf, len);
-
-    free(_num_buf);
-#else
-    *_str = _num_buf;
-#endif
 }
 
 int main(void) {
@@ -63,23 +48,17 @@ int main(void) {
     register time_manager *t_conf = time_manager_new();
     if (init_conf(t_conf, &buf) != -1) {
         register const int conf_time = get_sleep_time(t_conf);
-        register const int conf_timeout = get_timeout(t_conf);
+        register int sleep_time = conf_time;
 
         title = get_title(t_conf);
-        prepare_timeout(&_num, conf_timeout);
-
-        register int sleep_time = conf_time;
+        _num = get_timeout(t_conf);
 
         time_manager_free(t_conf);
 
         while (1) {
 #ifdef _WIN32
             SleepEx(60000 * sleep_time, 0);
-#else
-            sleep(60 * sleep_time);
-#endif
 
-#ifdef _WIN32
             STARTUPINFO si = { 0 };
             si.cb = sizeof(si);
 
@@ -101,6 +80,8 @@ int main(void) {
                 CloseHandle(pi.hThread);
             }
 #else
+            sleep(60 * sleep_time);
+
             register int pid = fork();
             int status = 0;
             if (pid == 0) {

@@ -13,7 +13,7 @@ static int timeout = 0;
 static uiProgressBar *pbar;
 static int progress_value = 0;
 
-static inline int addTime(void* data) {
+static inline int addTime(UNUSED void* data) {
     if (progress_value != 100) {
         ++progress_value;
 
@@ -25,7 +25,7 @@ static inline int addTime(void* data) {
     return 1;
 }
 
-static inline int onClosing(uiWindow *w, void* data) {
+static inline int onClosing(UNUSED uiWindow *w, UNUSED void* data) {
     uiQuit();
     return 1;
 }
@@ -38,18 +38,18 @@ static inline int onShouldQuit(void* data) {
     return 1;
 }
 
-static inline void onSkip(uiButton *b, void* data) {
+static inline void onSkip(UNUSED uiButton *b, UNUSED void* data) {
     uiProgressBarSetValue(pbar, 100);
     uiQuit();
 }
 
-static void onAdd(uiButton *b, void* data) {
-    register file_t fd = 0;
+static void onAdd(UNUSED uiButton *b, void* data) {
+    register file_t fd = (file_t)0;
 
     OPEN_READ_D(fd, filename)
         char *ptr = NULL;
-        const int value = (int)strtol(buf, &ptr, 10) + (int)data;
-        register const unsigned long len = count_numbers(value);
+        register const int value = (int)strtol(buf, &ptr, 10) + (intptr_t)data;
+        register const unsigned long len = count_numbers(value) + 1UL;
 
         CLOSE_ND(fd)
 
@@ -57,11 +57,11 @@ static void onAdd(uiButton *b, void* data) {
 #ifdef _WIN32
         OPEN_WRITE_D(buf_file, filename, OPEN_EXISTING)
 
-        char* _num = (char *)malloc(len + 1UL);
+        char* _num = (char *)malloc(len);
 #else
         OPEN_WRITE_D(buf_file, filename, O_WRONLY)
 
-        char _num[len + 1UL];
+        char _num[len];
 #endif
 
         itoa_d(value, _num);
@@ -79,7 +79,7 @@ static void onAdd(uiButton *b, void* data) {
     uiQuit();
 }
 
-static unsigned char initArgs(const int __argc_param, const char** __argv_param) {
+static unsigned char initArgs(const unsigned __argc_param, const char** __argv_param) {
     register unsigned char result = 1U;
 
     register unsigned i = 1U;
@@ -102,7 +102,7 @@ static unsigned char initArgs(const int __argc_param, const char** __argv_param)
             break;
         case 't': {
                 char *ptr = NULL;
-                const int value = (int)strtol(__argv_param[i + 1U], &ptr, 10UL);
+                register const int value = (int)strtol(__argv_param[i + 1U], &ptr, 10UL);
                 timeout = value;
 
                 result = 0U;
@@ -127,7 +127,7 @@ static unsigned char initArgs(const int __argc_param, const char** __argv_param)
 int main(const int argc, const char** argv) {
     register unsigned char res_init = 0U;
     if (argc > 1)
-        res_init = initArgs(argc, argv);
+        res_init = initArgs((const unsigned)argc, argv);
 
     uiInitOptions o = { 0 };
     if ((!res_init) && (uiInit(&o) == NULL)) {
