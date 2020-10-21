@@ -36,46 +36,35 @@ inline title_t get_title(time_manager *t_conf) {
     return t_conf->title;
 }
 
-static inline void get_envs(config_setting_t *setting, const char** args, time_manager *t_conf) {
-    if (setting != NULL) {
-        register const unsigned сonf_length = (unsigned)config_setting_length(setting);
-        int timeout_buf = 0;
+static inline void get_envs(config_t *cfg, time_manager *t_conf) {
+    int timeout_buf = 0;
+    config_lookup_int(cfg, "sleep", &t_conf->sleep);
+    config_lookup_int(cfg, "out", &timeout_buf);
 
-        register unsigned i = 0U;
-        while (i < сonf_length) {
-            config_setting_t *pos = config_setting_get_elem(setting, i);
-
-            config_setting_lookup_int(pos, args[0], &t_conf->sleep);
-            config_setting_lookup_int(pos, args[1], &timeout_buf);
-
-            ++i;
-        }
-
-        if (t_conf->sleep == 0)
-            t_conf->sleep = 10;
-        if (timeout_buf != 0) {
-            register const unsigned long buf_len = count_numbers(timeout_buf) + 1UL;
-            char* _num_buf = (char *)malloc(buf_len);
-            itoa_d(timeout_buf, _num_buf);
+    if (t_conf->sleep == 0)
+        t_conf->sleep = 10;
+    if (timeout_buf != 0) {
+        register const unsigned long buf_len = count_numbers(timeout_buf) + 1UL;
+        register char* _num_buf = (char *)malloc(buf_len);
+        itoa_d(timeout_buf, _num_buf);
 
 #ifdef _WIN32
-            t_conf->out = (wchar_t *)malloc(buf_len);
-            mbstowcs_s(NULL, t_conf->out, buf_len, _num_buf, buf_len);
+        t_conf->out = (wchar_t *)malloc(buf_len);
+        mbstowcs_s(NULL, t_conf->out, buf_len, _num_buf, buf_len);
 
-            /* Frees buffer */
-            free(_num_buf);
+        /* Frees buffer */
+        free(_num_buf);
 #else
-            t_conf->out = _num_buf;
+        t_conf->out = _num_buf;
 #endif
 
-        } else {
-            t_conf->out = (title_t)malloc(3UL * sizeof(title_t));
+    } else {
+        t_conf->out = (title_t)malloc(3UL * sizeof(title_t));
 #ifdef _WIN32
-            wcscpy_s(t_conf->out, 3UL, L"15");
+        wcscpy_s(t_conf->out, 3UL, L"15");
 #else
-            strncpy(t_conf->out, "15", 3UL);
+        strncpy(t_conf->out, "15", 3UL);
 #endif
-        }
     }
 }
 
@@ -118,7 +107,7 @@ static inline void config_get_buf(file_fmt_t* buf) {
 }
 
 
-static int conf_read(time_manager *t_conf) {
+static unsigned char conf_read(time_manager *t_conf) {
     config_t cfg;
     config_init(&cfg);
 
@@ -129,7 +118,7 @@ static int conf_read(time_manager *t_conf) {
         printf("\033[31merror:%d\033[0m: %s\n", config_error_line(&cfg),
                                                 config_error_text(&cfg));
         config_destroy(&cfg);
-        return -1;
+        return 0U;
     }
 
     const char* buf = NULL;
@@ -146,21 +135,14 @@ static int conf_read(time_manager *t_conf) {
     strncpy(t_conf->title, buf, title_len);
 #endif
 
-    config_setting_t *setting = config_lookup(&cfg, "time");
-    const char* vars[2] = { "sleep", "out" };
-    get_envs(setting, vars, t_conf);
+    get_envs(&cfg, t_conf);
 
     config_destroy(&cfg);
-    return 0;
+    return 1U;
 }
 
-int init_conf(time_manager *t_conf, file_fmt_t *file_buf) {
-    register int result = -1;
-
+inline unsigned char init_conf(time_manager *t_conf, file_fmt_t *file_buf) {
     config_get_buf(file_buf);
 
-    if (conf_read(t_conf) != -1)
-        result = 0;
-
-    return result;
+    return conf_read(t_conf);
 }

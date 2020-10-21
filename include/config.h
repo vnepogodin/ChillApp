@@ -6,10 +6,10 @@ typedef struct _Time_manager time_manager;
 #ifdef _WIN32
 # include <wchar.h>
 typedef wchar_t* title_t;
-int init_conf(time_manager *, const wchar_t**);
+extern unsigned char init_conf(time_manager *, const wchar_t**);
 #else
 typedef char* title_t;
-int init_conf(time_manager *, const char**);
+extern unsigned char init_conf(time_manager *, const char**);
 #endif
 
 extern time_manager* time_manager_new(void);

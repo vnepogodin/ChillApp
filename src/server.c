@@ -46,7 +46,7 @@ int main(void) {
 #endif
 
     register time_manager *t_conf = time_manager_new();
-    if (init_conf(t_conf, &buf) != -1) {
+    if (init_conf(t_conf, &buf)) {
         register const int conf_time = get_sleep_time(t_conf);
         register int sleep_time = conf_time;
 
