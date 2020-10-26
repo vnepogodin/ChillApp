@@ -39,9 +39,15 @@ static void handler(UNUSED const int sig) {
 }
 
 int main(void) {
+#ifdef _WIN32
+    FreeConsole();
+#endif
+
     signal(SIGINT, handler);
     signal(SIGTERM, handler);
-#ifndef _WIN32
+#ifdef _WIN32
+    signal(SIGABRT, handler);
+#else
     signal(SIGQUIT, handler);
 #endif
 
@@ -72,7 +78,7 @@ int main(void) {
             wcsncat_s(args, 200UL, L" -t ", 5UL);
             wcsncat_s(args, 200UL, _num, wcsnlen_s(_num, 200UL));
 
-            if (CreateProcess(NULL, args, NULL, NULL, 0, 0, NULL, NULL, &si, &pi)) {
+            if (CreateProcess(NULL, args, NULL, NULL, 0, CREATE_NO_WINDOW, NULL, NULL, &si, &pi)) {
                 WaitForSingleObject(pi.hProcess, INFINITE);
 
                 /* Frees memory */

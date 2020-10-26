@@ -7,10 +7,10 @@
 #include <ui.h> /* uiProgressBar, uiMain, uiQuit.. */
 
 static file_fmt_t title = NULL;
-static file_fmt_t filename = 0;
+static file_fmt_t filename = NULL;
 static int timeout = 0;
 
-static uiProgressBar *pbar;
+static uiProgressBar *pbar = NULL;
 static int progress_value = 0;
 
 static inline int addTime(UNUSED void* data) {
@@ -53,7 +53,7 @@ static void onAdd(UNUSED uiButton *b, void* data) {
 
         CLOSE_ND(fd)
 
-        register file_t buf_file = 0;
+        register file_t buf_file = (file_t)0;
 #ifdef _WIN32
         OPEN_WRITE_D(buf_file, filename, OPEN_EXISTING)
 
@@ -125,6 +125,10 @@ static unsigned char initArgs(const unsigned __argc_param, const char** __argv_p
 }
 
 int main(const int argc, const char** argv) {
+#ifdef _WIN32
+    FreeConsole();
+#endif
+
     register unsigned char res_init = 0U;
     if (argc > 1)
         res_init = initArgs((const unsigned)argc, argv);
