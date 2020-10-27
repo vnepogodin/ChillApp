@@ -9,26 +9,22 @@
 #endif
 
 #ifdef _WIN32
-typedef void* file_t;
-typedef const wchar_t* file_fmt_t;
-# define OPEN_READ_D(file_d, path)                                                                                                         \
-    (file_d) = CreateFile((path), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED, NULL); \
-    if ((file_d) != (file_t)-1) {                                                                                                          \
-        char buf[25] = { 0 };                                                                                                              \
-                                                                                                                                           \
-        OVERLAPPED ol = { 0 };                                                                                                             \
+# define OPEN_READ_D(file_d, path)                                                                                                           \
+    (file_d) = CreateFile((path), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED | FILE_FLAG_RANDOM_ACCESS, NULL); \
+    if ((file_d) != (void*)-1) {                                                                                                             \
+        char buf[25] = { 0 };                                                                                                                \
+                                                                                                                                             \
+        OVERLAPPED ol = { 0 };                                                                                                               \
         ReadFileEx((file_d), buf, 25UL, &ol, 3);
-# define OPEN_WRITE_D(file_d, path, flag)                                                       \
-    (file_d) = CreateFile((path), GENERIC_WRITE, 0, NULL, (flag), FILE_ATTRIBUTE_NORMAL, NULL); \
-    if ((file_d) != (file_t)-1) {                                                               \
+# define OPEN_WRITE_D(file_d, path, flag)                                                         \
+    (file_d) = CreateFile((path), GENERIC_WRITE, 0, NULL, (flag), FILE_FLAG_RANDOM_ACCESS, NULL); \
+    if ((file_d) != (void*)-1) {                                                                  \
         OVERLAPPED w_ol = { 0 };
 # define CLOSE_ND(file_d) CloseHandle((file_d));
 #else
-typedef int file_t;
-typedef const char* file_fmt_t;
 # define OPEN_READ_D(file_d, path)             \
     (file_d) = openat(0, (path), O_RDONLY, 0); \
-    if ((file_d) != (file_t)-1) {              \
+    if ((file_d) != -1) {                      \
         char buf[25] = { 0 };                  \
                                                \
         pread((file_d), buf, 25UL, 0);

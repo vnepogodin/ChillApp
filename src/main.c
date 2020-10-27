@@ -1,4 +1,5 @@
-﻿#include "../include/file_manager.h"
+﻿#include "../include/types.h"
+#include "../include/file_manager.h"
 #include "../include/helpers.h"
 
 #include <stdlib.h> /* strtol */
@@ -6,8 +7,8 @@
 
 #include <ui.h> /* uiProgressBar, uiMain, uiQuit.. */
 
-static file_fmt_t title = NULL;
-static file_fmt_t filename = NULL;
+static const char* title = NULL;
+static title_t filename = NULL;
 static int timeout = 0;
 
 static uiProgressBar *pbar = NULL;
@@ -76,6 +77,9 @@ static void onAdd(UNUSED uiButton *b, void* data) {
         CLOSE_D(buf_file)
     }
 
+    /* Frees buffer */
+    free(filename);
+
     uiQuit();
 }
 
@@ -102,18 +106,23 @@ static unsigned char initArgs(const unsigned __argc_param, const char** __argv_p
             break;
         case 't': {
                 char *ptr = NULL;
-                register const int value = (int)strtol(__argv_param[i + 1U], &ptr, 10UL);
-                timeout = value;
+                timeout = (int)strtol(__argv_param[i + 1U], &ptr, 10UL);
 
                 result = 0U;
                 ++i;
             }
             break;
-        case 'f':
-            filename = __argv_param[i + 1U];
-
-            result = 0U;
-            ++i;
+        case 'f': {
+#ifdef _WIN32
+                register const unsigned long buf_len = strlen(__argv_param[i + 1U]) + 1UL;
+                filename = (title_t)malloc(buf_len);
+                mbstowcs_s(NULL, filename, buf_len, __argv_param[i + 1U], buf_len);
+#else
+                filename = __argv_param[i + 1U];
+#endif
+                result = 0U;
+                ++i;
+            }
             break;
         default: break;
         }
