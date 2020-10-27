@@ -1,4 +1,5 @@
 ﻿#include "../include/types.h"
+
 #include "../include/file_manager.h"
 #include "../include/helpers.h"
 
@@ -68,18 +69,16 @@ static void onAdd(UNUSED uiButton *b, void* data) {
         itoa_d(value, _num);
 
 #ifdef _WIN32
-        WriteFileEx(buf_file, _num, len, &w_ol, 3);
+        WriteFileEx(buf_file, _num, len, &w_ol, NULL);
         free(_num);
 #else
         pwrite(buf_file, _num, len, 0);
 #endif
-        /* Frees memory */
         CLOSE_D(buf_file)
     }
 
     /* Frees buffer */
     free(filename);
-
     uiQuit();
 }
 

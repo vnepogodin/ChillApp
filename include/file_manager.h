@@ -15,7 +15,7 @@
         char buf[25] = { 0 };                                                                                                                \
                                                                                                                                              \
         OVERLAPPED ol = { 0 };                                                                                                               \
-        ReadFileEx((file_d), buf, 25UL, &ol, 3);
+        ReadFileEx((file_d), buf, 25UL, &ol, NULL);
 # define OPEN_WRITE_D(file_d, path, flag)                                                         \
     (file_d) = CreateFile((path), GENERIC_WRITE, 0, NULL, (flag), FILE_FLAG_RANDOM_ACCESS, NULL); \
     if ((file_d) != (void*)-1) {                                                                  \
