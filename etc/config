@@ -1,4 +1,7 @@
 title = "Timer"
 
+# Time in minutes
 sleep = 15
+
+# Time in seconds
 out   = 15

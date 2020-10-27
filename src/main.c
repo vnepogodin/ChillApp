@@ -9,7 +9,13 @@
 #include <ui.h> /* uiProgressBar, uiMain, uiQuit.. */
 
 static const char* title = NULL;
-static title_t filename = NULL;
+
+#ifdef _WIN32
+static wchar_t* filename = NULL;
+#else
+static const char* filename = NULL;
+#endif
+
 static int timeout = 0;
 
 static uiProgressBar *pbar = NULL;
@@ -77,8 +83,10 @@ static void onAdd(UNUSED uiButton *b, void* data) {
         CLOSE_D(buf_file)
     }
 
+#ifdef WIN32
     /* Frees buffer */
     free(filename);
+#endif
     uiQuit();
 }
 
