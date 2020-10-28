@@ -1,7 +1,6 @@
-﻿#include "../include/types.h"
-
-#include "../include/file_manager.h"
-#include "../include/helpers.h"
+﻿#include "../include/types.h" /* file_t, title_t */
+#include "../include/helpers.h" /* itoa_d, count_numbers */
+#include "../include/file_manager.h" /* OPEN_*_D, CLOSE_D */
 
 #include <stdlib.h> /* strtol */
 #include <string.h> /* strlen */
@@ -33,7 +32,8 @@ static inline int addTime(UNUSED void* data) {
     return 1;
 }
 
-static inline int onClosing(UNUSED uiWindow *w, UNUSED void* data) {
+static inline int onClosing(UNUSED uiWindow *w,
+                            UNUSED void* data) {
     uiQuit();
     return 1;
 }
@@ -46,22 +46,23 @@ static inline int onShouldQuit(void* data) {
     return 1;
 }
 
-static inline void onSkip(UNUSED uiButton *b, UNUSED void* data) {
+static inline void onSkip(UNUSED uiButton *b,
+                          UNUSED void* data) {
     uiProgressBarSetValue(pbar, 100);
     uiQuit();
 }
 
 static void onAdd(UNUSED uiButton *b, void* data) {
-    register file_t fd = (file_t)0;
+    TYPE file_t fd = (file_t)0;
 
     OPEN_READ_D(fd, filename)
         char *ptr = NULL;
-        register const int value = (int)strtol(buf, &ptr, 10) + (intptr_t)data;
-        register const unsigned long len = count_numbers(value) + 1UL;
+        CTYPE int value = (int)strtol(buf, &ptr, 10) + (intptr_t)data;
+        CTYPE size_t len = count_numbers(value) + 1UL;
 
         CLOSE_ND(fd)
 
-        register file_t buf_file = (file_t)0;
+        TYPE file_t buf_file = (file_t)0;
 #ifdef _WIN32
         OPEN_WRITE_D(buf_file, filename, OPEN_EXISTING)
 
@@ -90,30 +91,36 @@ static void onAdd(UNUSED uiButton *b, void* data) {
     uiQuit();
 }
 
-static unsigned char initArgs(const unsigned __argc_param, const char** __argv_param) {
-    register unsigned char result = 1U;
+static unsigned char initArgs(const unsigned __argc_param,
+                              const char** __argv_param) {
+    TYPE uint8_t result = 1U;
 
-    register unsigned i = 1U;
+    TYPE unsigned i = 1U;
     while (i < __argc_param) {
-        if (__argv_param[i + 1U] == NULL) {
+        const char* p_next = __argv_param[i + 1U];
+        const char* buf = __argv_param[i];
+        CTYPE size_t buf_l = strlen(buf);
+
+        if (p_next == NULL) {
             result = 1U;
             break;
-        } else if (__argv_param[i + 1U][0] == '-') {
+        } else if (p_next[0] == '-') {
             result = 1U;
             break;
         }
 
-        if (strlen(__argv_param[i]) == 2UL) {
-        switch (__argv_param[i][1]) {
+        if (buf_l == 2UL) {
+        switch (buf[1]) {
         case 'n':
-            title = __argv_param[i + 1U];
+            title = p_next;
 
             result = 0U;
             ++i;
             break;
         case 't': {
                 char *ptr = NULL;
-                timeout = (int)strtol(__argv_param[i + 1U], &ptr, 10UL);
+                timeout = (int)strtol(p_next,
+                                      &ptr, 10UL);
 
                 result = 0U;
                 ++i;
@@ -121,11 +128,12 @@ static unsigned char initArgs(const unsigned __argc_param, const char** __argv_p
             break;
         case 'f': {
 #ifdef _WIN32
-                register const unsigned long buf_len = strlen(__argv_param[i + 1U]) + 1UL;
+                CTYPE size_t buf_len = strlen(p_next) + 1UL;
                 filename = (title_t)malloc(buf_len);
-                mbstowcs_s(NULL, filename, buf_len, __argv_param[i + 1U], buf_len);
+                mbstowcs_s(NULL, filename, buf_len,
+                           p_next, buf_len);
 #else
-                filename = __argv_param[i + 1U];
+                filename = p_next;
 #endif
                 result = 0U;
                 ++i;
@@ -145,19 +153,20 @@ int main(const int argc, const char** argv) {
     FreeConsole();
 #endif
 
-    register unsigned char res_init = 0U;
+    TYPE uint8_t res_init = 0U;
     if (argc > 1)
         res_init = initArgs((const unsigned)argc, argv);
 
     uiInitOptions o = { 0 };
     if ((!res_init) && (uiInit(&o) == NULL)) {
 #ifdef _WIN32
-        register const unsigned char isMenuBar = 1U;
+        CTYPE uint8_t isMenuBar = 1U;
 #else
-        register const unsigned char isMenuBar = 0U;
+        CTYPE uint8_t isMenuBar = 0U;
 #endif
 
-        register uiWindow *win = uiNewWindow((title == NULL) ? "Timer" : title, 550, 80, isMenuBar);
+        TYPE uiWindow *win = uiNewWindow((title == NULL) ? "Timer" : title,
+                                         550, 80, isMenuBar);
         uiWindowOnClosing(win, onClosing, NULL);
         uiOnShouldQuit(onShouldQuit, win);
 
@@ -190,7 +199,8 @@ int main(const int argc, const char** argv) {
         uiButtonOnClicked(skip, onSkip, NULL);
         uiBoxAppend(top_box, uiControl(skip), 1);
 
-        uiTimer((timeout == 0) ? 243 : (16.3 * timeout), addTime, NULL);
+        uiTimer((timeout == 0) ? 243 : (16.3 * timeout),
+                addTime, NULL);
 
         uiControlShow(uiControl(win));
         uiMain();

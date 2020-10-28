@@ -3,15 +3,15 @@
 #include <math.h> /* logf */
 
 #define SWAP(_first, _second) do{       \
-    register char _temp = *(_second);   \
+    TYPE char _temp = *(_second);       \
     *(_second) = *(_first);             \
     *(_first) = _temp;                  \
 }while(0)
 
 /* Transform macro */
 #define REVERSE(_str, _length) do{          \
-    register int start = 0;                 \
-    register int end = (_length) - 1;       \
+    TYPE int start = 0;                     \
+    TYPE int end = (_length) - 1;           \
                                             \
     while (start < end) {                   \
         SWAP(&(_str[start]), &(_str[end])); \
@@ -22,12 +22,12 @@
 
 
 void itoa_d(const int _num_param, char* _str_param) {
-    register int num = _num_param;
+    TYPE int num = _num_param;
 
     /* Process individual digits */
-    register int i = 0;
+    TYPE int i = 0;
     while (num != 0) {
-        register int rem = num % 10;
+        TYPE int rem = num % 10;
 
         if (rem > 9)
             _str_param[i] = (char)((rem - 10) + 'a');

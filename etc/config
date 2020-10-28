@@ -4,4 +4,4 @@ title = "Timer"
 sleep = 15
 
 # Time in seconds
-out   = 15
+out   = 3

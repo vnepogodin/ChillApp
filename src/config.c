@@ -1,6 +1,6 @@
 #include "../include/config.h"
-#include "../include/helpers.h"
-#include "../include/file_manager.h"
+#include "../include/helpers.h" /* itoa_d, count_numbers */
+#include "../include/file_manager.h" /* OPEN_*_D, CLOSE_D */
 
 #include <stdlib.h> /* getenv, mkstemp, malloc, free */
 #include <string.h> /* strncat */
@@ -36,7 +36,8 @@ inline title_t get_title(time_manager *t_conf) {
     return t_conf->title;
 }
 
-static inline void get_envs(config_t *cfg, time_manager *t_conf) {
+static inline void get_envs(config_t *cfg,
+                            time_manager *t_conf) {
     int timeout_buf = 0;
     config_lookup_int(cfg, "sleep", &t_conf->sleep);
     config_lookup_int(cfg, "out", &timeout_buf);
@@ -44,8 +45,8 @@ static inline void get_envs(config_t *cfg, time_manager *t_conf) {
     if (t_conf->sleep == 0)
         t_conf->sleep = 10;
     if (timeout_buf != 0) {
-        register const unsigned long buf_len = count_numbers(timeout_buf) + 1UL;
-        register char* _num_buf = (char *)malloc(buf_len);
+        CTYPE size_t buf_len = count_numbers(timeout_buf) + 1UL;
+        TYPE char* _num_buf = (char *)malloc(buf_len);
         itoa_d(timeout_buf, _num_buf);
 
 #ifdef _WIN32
@@ -88,7 +89,7 @@ static inline const char* config_get_dir(void) {
 static inline void config_get_buf(file_fmt_t* buf) {
 #ifndef _WIN32
     static char res[21] = "/tmp/.config-XXXXXXX";
-    register int fdtmp = mkstemp(res);
+    TYPE int fdtmp = mkstemp(res);
     if (fdtmp != -1)
         CLOSE_ND(fdtmp)
 #else
@@ -98,7 +99,7 @@ static inline void config_get_buf(file_fmt_t* buf) {
     wcsncat_s(res, 100UL, L".config-XXXXXX", 15UL);
     _wmktemp_s(res, 100UL);
 
-    register void* fdtmp = NULL;
+    TYPE void* fdtmp = NULL;
     OPEN_WRITE_D(fdtmp, res, CREATE_ALWAYS)
     CLOSE_D(fdtmp)
 #endif
@@ -111,12 +112,17 @@ static unsigned char conf_read(time_manager *t_conf) {
     config_t cfg;
     config_init(&cfg);
 
-    /* Read the file. If there is an error, report it and exit. */
-    register const char* path = config_get_dir();
+    /* Read the file.
+     * If there is an error then report and exit.
+     */
+    CTYPE char* path = config_get_dir();
 
     if(!config_read_file(&cfg, path)) {
-        printf("\033[31merror:%d\033[0m: %s\n", config_error_line(&cfg),
-                                                config_error_text(&cfg));
+        CTYPE int err_pos = config_error_line(&cfg);
+        CTYPE char* err_what = config_error_text(&cfg);
+
+        printf("\033[31merror:%d\033[0m: %s\n", err_pos,
+                                                err_what);
         config_destroy(&cfg);
         return 0U;
     }
@@ -126,7 +132,7 @@ static unsigned char conf_read(time_manager *t_conf) {
     if (buf == NULL)
         buf = "Timer";
 
-    register const unsigned long title_len = strlen(buf) + 1UL;
+    CTYPE size_t title_len = strlen(buf) + 1UL;
     t_conf->title = (title_t)malloc(title_len);
 
 #ifdef _WIN32
@@ -141,8 +147,8 @@ static unsigned char conf_read(time_manager *t_conf) {
     return 1U;
 }
 
-inline unsigned char init_conf(time_manager *t_conf, file_fmt_t *file_buf) {
+inline unsigned char init_conf(time_manager *t_conf,
+                               file_fmt_t *file_buf) {
     config_get_buf(file_buf);
-
     return conf_read(t_conf);
 }

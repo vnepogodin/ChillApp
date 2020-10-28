@@ -7,6 +7,9 @@
 # define UNUSED __attribute__((unused))
 #endif
 
+#define TYPE register
+#define CTYPE TYPE const
+
 void itoa_d(const int, char*);
 
 extern unsigned long count_numbers(const int);

@@ -1,6 +1,6 @@
-#include "../include/file_manager.h"
-#include "../include/config.h"
-#include "../include/helpers.h"
+#include "../include/config.h" /* time_manager */
+#include "../include/helpers.h" /* itoa_d, count_numbers */
+#include "../include/file_manager.h" /* OPEN_*_D, CLOSE_D */
 
 #include <stdlib.h> /* exit, strtol */
 #include <signal.h> /* signal, SIGINT, SIGTERM */
@@ -17,7 +17,7 @@ static title_t _num = NULL;
 static inline int check_time(file_fmt_t filename) {
     int result = 0;
 
-    register file_t fd = (file_t)0;
+    TYPE file_t fd = (file_t)0;
     OPEN_READ_D(fd, filename)
         char* ptr = NULL;
         result = (int)strtol(buf, &ptr, 10);
@@ -51,10 +51,10 @@ int main(void) {
     signal(SIGQUIT, handler);
 #endif
 
-    register time_manager *t_conf = time_manager_new();
+    TYPE time_manager *t_conf = time_manager_new();
     if (init_conf(t_conf, &buf)) {
-        register const int conf_time = get_sleep_time(t_conf);
-        register int sleep_time = conf_time;
+        CTYPE int conf_time = get_sleep_time(t_conf);
+        TYPE int sleep_time = conf_time;
 
         title = get_title(t_conf);
         _num = get_timeout(t_conf);
@@ -70,13 +70,16 @@ int main(void) {
 
             PROCESS_INFORMATION pi = { 0 };
             wchar_t args[200] = L"chill.exe -f ";
-            wcsncat_s(args, 200UL, buf, wcsnlen_s(buf, 200UL));
+            wcsncat_s(args, 200UL, buf,
+                      wcsnlen_s(buf, 200UL));
 
             wcsncat_s(args, 200UL, L" -n ", 5UL);
-            wcsncat_s(args, 200UL, title, wcsnlen_s(title, 200UL));
+            wcsncat_s(args, 200UL, title,
+                      wcsnlen_s(title, 200UL));
 
             wcsncat_s(args, 200UL, L" -t ", 5UL);
-            wcsncat_s(args, 200UL, _num, wcsnlen_s(_num, 200UL));
+            wcsncat_s(args, 200UL, _num,
+                      wcsnlen_s(_num, 200UL));
 
             if (CreateProcess(NULL, args, NULL, NULL, 0, CREATE_NO_WINDOW, NULL, NULL, &si, &pi)) {
                 WaitForSingleObject(pi.hProcess, INFINITE);
@@ -88,10 +91,13 @@ int main(void) {
 #else
             sleep(60 * sleep_time);
 
-            register int pid = fork();
             int status = 0;
+            TYPE int pid = fork();
             if (pid == 0) {
-                char* const args[8] = { "chill", "-f", (char *)buf, "-n", (char *)title, "-t", _num, NULL };
+                char* const args[8] = { "chill",
+                                        "-f", (char *)buf,
+                                        "-n", (char *)title,
+                                        "-t", _num, NULL };
                 execvp(args[0], args);
             } else {
                 do {
