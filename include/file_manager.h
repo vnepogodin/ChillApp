@@ -9,16 +9,16 @@
 #endif
 
 #ifdef _WIN32
-# define OPEN_READ_D(file_d, path)                                                                                                           \
-    (file_d) = CreateFile((path), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED | FILE_FLAG_RANDOM_ACCESS, NULL); \
-    if ((file_d) != (void*)-1) {                                                                                                             \
-        char buf[25] = { 0 };                                                                                                                \
-                                                                                                                                             \
-        OVERLAPPED ol = { 0 };                                                                                                               \
+# define OPEN_READ_D(file_d, path)                                                                                                            \
+    (file_d) = CreateFileW((path), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED | FILE_FLAG_RANDOM_ACCESS, NULL); \
+    if ((file_d) != (void*)-1) {                                                                                                              \
+        char buf[25] = { 0 };                                                                                                                 \
+                                                                                                                                              \
+        OVERLAPPED ol = { 0 };                                                                                                                \
         ReadFileEx((file_d), buf, 25UL, &ol, NULL);
-# define OPEN_WRITE_D(file_d, path, flag)                                                         \
-    (file_d) = CreateFile((path), GENERIC_WRITE, 0, NULL, (flag), FILE_FLAG_RANDOM_ACCESS, NULL); \
-    if ((file_d) != (void*)-1) {                                                                  \
+# define OPEN_WRITE_D(file_d, path, flag)                                                          \
+    (file_d) = CreateFileW((path), GENERIC_WRITE, 0, NULL, (flag), FILE_FLAG_RANDOM_ACCESS, NULL); \
+    if ((file_d) != (void*)-1) {                                                                   \
         OVERLAPPED w_ol = { 0 };
 # define CLOSE_ND(file_d) CloseHandle((file_d));
 #else

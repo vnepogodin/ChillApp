@@ -94,7 +94,7 @@ static inline void config_get_buf(file_fmt_t* buf) {
         CLOSE_ND(fdtmp)
 #else
     static wchar_t res[100] = { 0 };
-    GetTempPath(85, res);
+    GetTempPathW(85, res);
 
     wcsncat_s(res, 100UL, L".config-XXXXXX", 15UL);
     _wmktemp_s(res, 100UL);
