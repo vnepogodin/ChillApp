@@ -195,12 +195,8 @@ int main(const int argc, const char** argv) {
         uiButtonOnClicked(skip, onSkip, NULL);
         uiBoxAppend(top_box, uiControl(skip), 1);
 
-        uiTimer((timeout == 0) ?
-#ifdef _WIN32
-        141 : (9 * timeout), addTime, NULL);
-#else
-        243 : (16 * timeout), addTime, NULL);
-#endif
+        uiTimer((timeout == 0) ? 150 : (10 * timeout),
+                addTime, NULL);
 
         uiControlShow(uiControl(win));
         uiMain();
