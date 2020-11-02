@@ -149,10 +149,6 @@ static unsigned char initArgs(const unsigned __argc_param,
 }
 
 int main(const int argc, const char** argv) {
-#ifdef _WIN32
-    FreeConsole();
-#endif
-
     TYPE uint8_t res_init = 0U;
     if (argc > 1)
         res_init = initArgs((const unsigned)argc, argv);
@@ -199,8 +195,12 @@ int main(const int argc, const char** argv) {
         uiButtonOnClicked(skip, onSkip, NULL);
         uiBoxAppend(top_box, uiControl(skip), 1);
 
-        uiTimer((timeout == 0) ? 243 : (16.3 * timeout),
-                addTime, NULL);
+        uiTimer((timeout == 0) ?
+#ifdef _WIN32
+        141 : (9 * timeout), addTime, NULL);
+#else
+        243 : (16 * timeout), addTime, NULL);
+#endif
 
         uiControlShow(uiControl(win));
         uiMain();
