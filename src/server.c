@@ -8,6 +8,8 @@
 #ifndef _WIN32
 # include <time.h> /* sleep */
 # include <sys/wait.h> /* waitpid */
+#else
+# define sleep(x) SleepEx((x) * 1000, 0)
 #endif
 
 static file_fmt_t buf = NULL;
@@ -62,9 +64,9 @@ int main(void) {
         time_manager_free(t_conf);
 
         while (1) {
-#ifdef _WIN32
-            SleepEx(60000 * sleep_time, 0);
+            sleep(60 * sleep_time);
 
+#ifdef _WIN32
             STARTUPINFO si = { 0 };
             si.cb = sizeof(si);
 
@@ -89,8 +91,6 @@ int main(void) {
                 CloseHandle(pi.hThread);
             }
 #else
-            sleep(60 * sleep_time);
-
             int status = 0;
             TYPE int pid = fork();
             if (pid == 0) {
