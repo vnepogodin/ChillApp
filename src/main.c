@@ -48,7 +48,6 @@ static inline int onShouldQuit(void* data) {
 
 static inline void onSkip(UNUSED uiButton *b,
                           UNUSED void* data) {
-    uiProgressBarSetValue(pbar, 100);
     uiQuit();
 }
 
