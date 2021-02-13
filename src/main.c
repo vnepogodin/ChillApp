@@ -5,6 +5,9 @@
 #include <stdlib.h> /* strtol */
 #include <string.h> /* strlen */
 
+#ifdef __linux__
+#include <gtk/gtk.h>
+#endif
 #include <ui.h> /* uiProgressBar, uiMain, uiQuit.. */
 
 static const char* title = NULL;
@@ -19,6 +22,25 @@ static int timeout = 0;
 
 static uiProgressBar *pbar = NULL;
 static int progress_value = 0;
+
+static inline void load_style(void) {
+#ifdef __linux__
+    const char* env = getenv("HOME");
+    const char path[29] = "/.config/chill_app/style.css";
+    strncat((char *)env, path, 29UL);
+
+    GtkCssProvider *provider = gtk_css_provider_new();
+    GdkDisplay *display = gdk_display_get_default();
+    GdkScreen *screen = gdk_display_get_default_screen(display);
+
+    gtk_style_context_add_provider_for_screen(screen, GTK_STYLE_PROVIDER(provider),
+                                              GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+
+    GError *error = NULL;
+    gtk_css_provider_load_from_path(provider, (gchar*)env, &error);
+    g_object_unref(provider);
+#endif
+}
 
 static inline int addTime(UNUSED void* data) {
     if (progress_value != 100) {
@@ -160,6 +182,7 @@ int main(const int argc, const char** argv) {
         CTYPE uint8_t isMenuBar = 0U;
 #endif
 
+        load_style();
         TYPE uiWindow *win = uiNewWindow((title == NULL) ? "Timer" : title,
                                          550, 80, isMenuBar);
         uiWindowOnClosing(win, onClosing, NULL);

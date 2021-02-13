@@ -1,0 +1,31 @@
+* {
+  background-clip: padding-box;
+  -GtkToolButton-icon-spacing: 4;
+  -GtkToolItemGroup-expander-size: 11;
+  -GtkWidget-text-handle-width: 20;
+  -GtkWidget-text-handle-height: 20;
+  -GtkDialog-button-spacing: 4;
+  -GtkDialog-action-area-border: 0;
+  }
+*:disabled {
+  -gtk-icon-effect: dim; }
+
+window {
+    background: rgba(95,95,95,0.96);
+    margin: 0;
+}
+
+button {
+    background: #0086f5;
+}
+
+button:hover {
+    background: #fdfdfd;
+    border-color: 1px #D1D3DA;
+}
+
+text {
+    color: rgba(255,255,255,0.96);
+    border: 0;
+    font-size: 12.8pt;
+}
