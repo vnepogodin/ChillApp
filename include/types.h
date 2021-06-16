@@ -5,10 +5,12 @@
 # include <wchar.h>
 typedef void* file_t;
 typedef wchar_t* title_t;
+typedef wchar_t letter_t;
 typedef const wchar_t* file_fmt_t;
 #else
 typedef int file_t;
 typedef char* title_t;
+typedef char letter_t;
 typedef const char* file_fmt_t;
 #endif
 

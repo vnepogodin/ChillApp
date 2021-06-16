@@ -60,7 +60,7 @@ static inline void get_envs(config_t *cfg,
 #endif
 
     } else {
-        t_conf->out = (title_t)malloc(3UL * sizeof(title_t));
+        t_conf->out = (title_t)malloc(3UL * sizeof(letter_t));
 #ifdef _WIN32
         wcscpy_s(t_conf->out, 3UL, L"15");
 #else
@@ -69,22 +69,25 @@ static inline void get_envs(config_t *cfg,
     }
 }
 
-static inline const char* config_get_dir(void) {
 #ifndef _WIN32
-#ifdef DEBUG
-    return "etc/config";
-#else
-    const char* env = getenv("HOME");
+
+static inline char* config_get_dir(void) {
+    char* env = (char*)calloc(sizeof(char), 100UL);
     const char path[26] = "/.config/chill_app/config";
 
-    strncat((char *)env, path, 26UL);
+    strncpy(env, getenv("HOME"), 100UL);
+    strncat(env, path, 26UL);
 
     return env;
-#endif
-#else
-    return "etc\\config";
-#endif
 }
+
+#else
+
+static inline const char* config_get_dir(void) {
+    return "etc\\config";
+}
+
+#endif
 
 static inline void config_get_buf(file_fmt_t* buf) {
 #ifndef _WIN32
@@ -115,7 +118,11 @@ static unsigned char conf_read(time_manager *t_conf) {
     /* Read the file.
      * If there is an error then report and exit.
      */
+#ifndef _WIN32
+    TYPE char* path = config_get_dir();
+#else
     CTYPE char* path = config_get_dir();
+#endif
 
     if(!config_read_file(&cfg, path)) {
         CTYPE int err_pos = config_error_line(&cfg);
@@ -124,8 +131,14 @@ static unsigned char conf_read(time_manager *t_conf) {
         printf("\033[31merror:%d\033[0m: %s\n", err_pos,
                                                 err_what);
         config_destroy(&cfg);
+#ifndef _WIN32
+        free(path);
+#endif
         return 0U;
     }
+#ifndef _WIN32
+    free(path);
+#endif
 
     const char* buf = NULL;
     config_lookup_string(&cfg, "title", &buf);
