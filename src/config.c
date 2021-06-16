@@ -75,7 +75,7 @@ static inline char* config_get_dir(void) {
     char* env = (char*)calloc(sizeof(char), 100UL);
     const char path[26] = "/.config/chill_app/config";
 
-    strncpy(env, getenv("HOME"), 100UL);
+    strncpy(env, getenv("HOME"), 74UL);
     strncat(env, path, 26UL);
 
     return env;
