@@ -1,5 +1,7 @@
 # ChillApp
 
+![](preview.png)
+
 ### Dependencies
   * libui
   * libconfig
