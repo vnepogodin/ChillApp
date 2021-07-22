@@ -203,11 +203,11 @@ int main(const int argc, const char** argv) {
         uiBoxAppend(vbox, uiControl(top_box), 0);
 
         /* Add buttons */
-        uiButton *first_b = uiNewButton("Add 5 Minutes");
+        uiButton *first_b = uiNewButton("Postpone 5 Minutes");
         uiButtonOnClicked(first_b, onAdd, (void*)5);
         uiBoxAppend(top_box, uiControl(first_b), 1);
 
-        uiButton *second_b = uiNewButton("Add 10 Minutes");
+        uiButton *second_b = uiNewButton("Postpone 10 Minutes");
         uiButtonOnClicked(second_b, onAdd, (void*)10);
         uiBoxAppend(top_box, uiControl(second_b), 1);
 
